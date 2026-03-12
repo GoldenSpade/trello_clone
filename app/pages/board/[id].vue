@@ -17,6 +17,8 @@ const BOARD_COLORS = [
   '#8ab8c8', '#c8a87a', '#a0b87a', '#c87a9a',
   '#0052cc', '#00875a', '#ff5630', '#ff8b00',
   '#6554c0', '#00b8d9', '#36b37e', '#403294',
+  // Extra
+  '#d946ef', '#0ea5e9',
 ]
 const showColorPicker = ref(false)
 
@@ -160,6 +162,7 @@ async function onDrop(e: DragEvent, toListId: string, toIndex: number) {
           @add-card="(listId, title) => createCard(listId, title)"
           @delete-list="(listId) => deleteList(listId)"
           @rename-list="(listId, title) => updateList(listId, { title })"
+          @color-list="(listId, color) => updateList(listId, { color })"
           @open-card="openCard"
           @drag-start="onDragStart"
           @drag-over="onDragOver"

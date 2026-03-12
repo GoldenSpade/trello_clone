@@ -7,8 +7,8 @@
 // Структура Google Таблицы (3 листа):
 //
 // Лист "Boards":  id | title | color | createdAt
-// Лист "Lists":   id | boardId | title | position | createdAt
-// Лист "Cards":   id | listId | title | description | position | createdAt | priority
+// Лист "Lists":   id | boardId | title | position | createdAt | color
+// Лист "Cards":   id | listId | title | description | position | createdAt | priority | color
 // ============================================================
 
 const SHEET_BOARDS = 'Boards';
@@ -25,8 +25,8 @@ function getSheet(name) {
     // Создаём заголовки
     const headers = {
       [SHEET_BOARDS]: ['id', 'title', 'color', 'createdAt'],
-      [SHEET_LISTS]:  ['id', 'boardId', 'title', 'position', 'createdAt'],
-      [SHEET_CARDS]:  ['id', 'listId', 'title', 'description', 'position', 'createdAt', 'priority'],
+      [SHEET_LISTS]:  ['id', 'boardId', 'title', 'position', 'createdAt', 'color'],
+      [SHEET_CARDS]:  ['id', 'listId', 'title', 'description', 'position', 'createdAt', 'priority', 'color'],
     };
     sheet.appendRow(headers[name]);
     sheet.getRange(1, 1, 1, headers[name].length)
@@ -171,8 +171,9 @@ function handleCreateList(body) {
   const now = new Date().toISOString();
   const existingLists = sheetToObjects(sheet).filter(l => l.boardId === body.boardId);
   const position = existingLists.length;
-  sheet.appendRow([id, body.boardId, body.title, position, now]);
-  return jsonResponse({ success: true, data: { id, boardId: body.boardId, title: body.title, position, createdAt: now } });
+  const listColor = body.color || '';
+  sheet.appendRow([id, body.boardId, body.title, position, now, listColor]);
+  return jsonResponse({ success: true, data: { id, boardId: body.boardId, title: body.title, position, createdAt: now, color: listColor } });
 }
 
 function handleUpdateList(body) {
@@ -182,6 +183,7 @@ function handleUpdateList(body) {
     if (data[i][0] === body.id) {
       if (body.title !== undefined)    sheet.getRange(i + 1, 3).setValue(body.title);
       if (body.position !== undefined) sheet.getRange(i + 1, 4).setValue(body.position);
+      if (body.color !== undefined)    sheet.getRange(i + 1, 6).setValue(body.color);
       return jsonResponse({ success: true });
     }
   }
@@ -225,10 +227,11 @@ function handleCreateCard(body) {
   const existingCards = sheetToObjects(sheet).filter(c => c.listId === body.listId);
   const position = existingCards.length;
   const priority = body.priority || 'none';
-  sheet.appendRow([id, body.listId, body.title, body.description || '', position, now, priority]);
+  const cardColor = body.color || '';
+  sheet.appendRow([id, body.listId, body.title, body.description || '', position, now, priority, cardColor]);
   return jsonResponse({
     success: true,
-    data: { id, listId: body.listId, title: body.title, description: body.description || '', position, createdAt: now, priority }
+    data: { id, listId: body.listId, title: body.title, description: body.description || '', position, createdAt: now, priority, color: cardColor }
   });
 }
 
@@ -241,6 +244,7 @@ function handleUpdateCard(body) {
       if (body.description !== undefined) sheet.getRange(i + 1, 4).setValue(body.description);
       if (body.position !== undefined)    sheet.getRange(i + 1, 5).setValue(body.position);
       if (body.priority !== undefined)    sheet.getRange(i + 1, 7).setValue(body.priority);
+      if (body.color !== undefined)       sheet.getRange(i + 1, 8).setValue(body.color);
       return jsonResponse({ success: true });
     }
   }

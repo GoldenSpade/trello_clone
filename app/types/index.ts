@@ -11,6 +11,7 @@ export interface List {
   title: string
   position: number
   createdAt: string
+  color?: string
 }
 
 export type Priority = 'none' | 'low' | 'medium' | 'high' | 'urgent'
@@ -23,4 +24,5 @@ export interface Card {
   position: number
   createdAt: string
   priority: Priority
+  color?: string
 }

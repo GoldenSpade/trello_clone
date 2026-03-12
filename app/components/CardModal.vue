@@ -12,6 +12,14 @@ const emit = defineEmits<{
   delete: []
 }>()
 
+const ACCENT_COLORS = [
+  '#ef4444', '#f97316', '#f59e0b', '#84cc16',
+  '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6',
+  '#ec4899', '#14b8a6', '#a3e635', '#fbbf24',
+  '#60a5fa', '#a78bfa', '#f472b6', '#94a3b8',
+  '#d946ef', '#0ea5e9',
+]
+
 const PRIORITIES: { value: Priority; label: string; color: string }[] = [
   { value: 'none',   label: 'None',   color: '#4b5563' },
   { value: 'low',    label: 'Low',    color: '#3b82f6' },
@@ -62,6 +70,14 @@ function onOverlayClick(e: MouseEvent) {
 const currentPriority = computed(() =>
   PRIORITIES.find(p => p.value === (props.card.priority ?? 'none')) ?? PRIORITIES[0]!
 )
+
+function formatDateTime(dateStr: string) {
+  if (!dateStr) return ''
+  return new Date(dateStr).toLocaleString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric',
+    hour: 'numeric', minute: '2-digit',
+  })
+}
 </script>
 
 <template>
@@ -98,6 +114,9 @@ const currentPriority = computed(() =>
             </h2>
             <p class="text-xs text-[#8c9bab] mt-1 px-2">
               in list <span class="underline cursor-pointer">{{ list.title }}</span>
+            </p>
+            <p v-if="card.createdAt" class="text-xs text-[#8c9bab]/60 mt-0.5 px-2">
+              Created {{ formatDateTime(card.createdAt) }}
             </p>
           </div>
           <button
@@ -174,6 +193,27 @@ const currentPriority = computed(() =>
                 {{ p.label }}
               </button>
             </div>
+          </div>
+
+          <div>
+            <p class="text-xs font-semibold text-[#8c9bab] uppercase tracking-wide mb-2">Color</p>
+            <div class="flex flex-wrap gap-1.5 mb-1">
+              <button
+                v-for="c in ACCENT_COLORS"
+                :key="c"
+                class="w-5 h-5 rounded hover:scale-110 transition-transform"
+                :class="card.color === c ? 'ring-2 ring-white ring-offset-1 ring-offset-[#282e33]' : ''"
+                :style="{ backgroundColor: c }"
+                @click="emit('update', { color: c })"
+              />
+            </div>
+            <button
+              v-if="card.color"
+              class="w-full text-[10px] text-[#8c9bab] hover:text-white py-0.5 text-left transition-colors"
+              @click="emit('update', { color: '' })"
+            >
+              Remove color
+            </button>
           </div>
 
           <div>

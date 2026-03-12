@@ -10,24 +10,27 @@ const emit = defineEmits<{
   addCard: [listId: string, title: string]
   deleteList: [listId: string]
   renameList: [listId: string, title: string]
+  colorList: [listId: string, color: string]
   openCard: [card: Card]
   dragStart: [e: DragEvent, card: Card, listId: string]
   dragOver: [e: DragEvent, listId: string, index: number]
   drop: [e: DragEvent, listId: string, index: number]
 }>()
 
+const ACCENT_COLORS = [
+  '#ef4444', '#f97316', '#f59e0b', '#84cc16',
+  '#22c55e', '#06b6d4', '#3b82f6', '#8b5cf6',
+  '#ec4899', '#14b8a6', '#a3e635', '#fbbf24',
+  '#60a5fa', '#a78bfa', '#f472b6', '#94a3b8',
+  '#d946ef', '#0ea5e9',
+]
+
 const addingCard = ref(false)
 const newCardTitle = ref('')
 const editingTitle = ref(false)
 const listTitle = ref(props.list.title)
 const menuOpen = ref(false)
-
-async function submitCard() {
-  if (!newCardTitle.value.trim()) return
-  emit('addCard', props.list.id, newCardTitle.value.trim())
-  newCardTitle.value = ''
-  addingCard.value = false
-}
+const colorPickerOpen = ref(false)
 
 const PRIORITY_COLORS: Record<string, string> = {
   low: '#3b82f6', medium: '#f59e0b', high: '#f97316', urgent: '#ef4444',
@@ -36,6 +39,18 @@ const PRIORITY_COLORS: Record<string, string> = {
 function priorityStyle(priority: string) {
   const c = PRIORITY_COLORS[priority] ?? '#4b5563'
   return { backgroundColor: c + '33', color: c, border: `1px solid ${c}66` }
+}
+
+async function submitCard() {
+  if (!newCardTitle.value.trim()) return
+  emit('addCard', props.list.id, newCardTitle.value.trim())
+  newCardTitle.value = ''
+  addingCard.value = false
+}
+
+function formatDate(dateStr: string) {
+  if (!dateStr) return ''
+  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 function saveTitle() {
@@ -48,10 +63,17 @@ function saveTitle() {
 
 <template>
   <div
-    class="bg-[#101204] rounded-xl w-64 shrink-0 flex flex-col max-h-full"
+    class="bg-[#101204] rounded-xl w-64 shrink-0 flex flex-col max-h-full overflow-hidden"
     @dragover.prevent="emit('dragOver', $event, list.id, cards.length)"
     @drop.prevent="emit('drop', $event, list.id, cards.length)"
   >
+    <!-- List color bar -->
+    <div
+      v-if="list.color"
+      class="h-1.5 w-full shrink-0"
+      :style="{ backgroundColor: list.color }"
+    />
+
     <!-- List header -->
     <div class="px-3 pt-3 pb-1 flex items-center justify-between">
       <input
@@ -81,25 +103,62 @@ function saveTitle() {
             <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"/>
           </svg>
         </button>
+
+        <!-- Dropdown menu -->
         <div
           v-if="menuOpen"
           class="absolute right-0 top-8 bg-[#282e33] rounded-lg shadow-xl w-44 z-20 py-1 border border-[#38424d]"
         >
           <button
-            class="w-full text-left px-4 py-2 text-sm text-[#b6c2cf] hover:bg-[#38424d] flex items-center gap-2"
+            class="w-full text-left px-4 py-2 text-sm text-[#b6c2cf] hover:bg-[#38424d]"
             @click="menuOpen = false; addingCard = true"
           >
             Add a card
           </button>
           <button
-            class="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-[#38424d] flex items-center gap-2"
+            class="w-full text-left px-4 py-2 text-sm text-[#b6c2cf] hover:bg-[#38424d]"
+            @click="menuOpen = false; colorPickerOpen = true"
+          >
+            Change color
+          </button>
+          <button
+            class="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-[#38424d]"
             @click="menuOpen = false; emit('deleteList', list.id)"
           >
             Delete list
           </button>
         </div>
-        <!-- Click outside to close menu -->
-        <div v-if="menuOpen" class="fixed inset-0 z-10" @click="menuOpen = false" />
+
+        <!-- List color picker -->
+        <div
+          v-if="colorPickerOpen"
+          class="absolute right-0 top-8 bg-[#282e33] rounded-lg shadow-xl p-3 z-20 border border-[#38424d] w-52"
+        >
+          <p class="text-[10px] text-[#8c9bab] uppercase tracking-wide mb-2">List color</p>
+          <div class="flex flex-wrap gap-1.5 mb-2">
+            <button
+              v-for="c in ACCENT_COLORS"
+              :key="c"
+              class="w-6 h-6 rounded hover:scale-110 transition-transform"
+              :class="list.color === c ? 'ring-2 ring-white ring-offset-1 ring-offset-[#282e33]' : ''"
+              :style="{ backgroundColor: c }"
+              @click="emit('colorList', list.id, c); colorPickerOpen = false"
+            />
+          </div>
+          <button
+            class="w-full text-xs text-[#8c9bab] hover:text-white py-1 text-left"
+            @click="emit('colorList', list.id, ''); colorPickerOpen = false"
+          >
+            Remove color
+          </button>
+        </div>
+
+        <!-- Click outside to close -->
+        <div
+          v-if="menuOpen || colorPickerOpen"
+          class="fixed inset-0 z-10"
+          @click="menuOpen = false; colorPickerOpen = false"
+        />
       </div>
     </div>
 
@@ -108,20 +167,34 @@ function saveTitle() {
       <div
         v-for="(card, index) in cards"
         :key="card.id"
-        class="bg-[#22272b] hover:bg-[#282e33] rounded-lg px-3 py-2 cursor-pointer shadow-sm border border-transparent hover:border-[#579dff]/30 transition-colors group"
+        class="bg-[#22272b] hover:bg-[#282e33] rounded-lg cursor-pointer shadow-sm border border-transparent hover:border-[#579dff]/30 transition-colors overflow-hidden"
         draggable="true"
         @dragstart="emit('dragStart', $event, card, list.id)"
         @dragover.prevent.stop="emit('dragOver', $event, list.id, index)"
         @drop.prevent.stop="emit('drop', $event, list.id, index)"
         @click="emit('openCard', card)"
       >
-        <p class="text-sm text-[#b6c2cf] leading-snug">{{ card.title }}</p>
-        <p v-if="card.description" class="text-xs text-[#8c9bab] mt-1 line-clamp-2">{{ card.description }}</p>
-        <div v-if="card.priority && card.priority !== 'none'" class="mt-1.5">
-          <span
-            class="text-[10px] font-bold uppercase tracking-wide rounded px-1.5 py-0.5"
-            :style="priorityStyle(card.priority)"
-          >{{ card.priority }}</span>
+        <!-- Card color bar -->
+        <div
+          v-if="card.color"
+          class="h-2 w-full"
+          :style="{ backgroundColor: card.color }"
+        />
+        <!-- Card content -->
+        <div class="px-3 py-2">
+          <p class="text-sm text-[#b6c2cf] leading-snug">{{ card.title }}</p>
+          <p v-if="card.description" class="text-xs text-[#8c9bab] mt-1 line-clamp-2">{{ card.description }}</p>
+          <div class="flex items-center justify-between mt-1.5 gap-2">
+            <div v-if="card.priority && card.priority !== 'none'">
+              <span
+                class="text-[10px] font-bold uppercase tracking-wide rounded px-1.5 py-0.5"
+                :style="priorityStyle(card.priority)"
+              >{{ card.priority }}</span>
+            </div>
+            <span v-if="card.createdAt" class="text-[10px] text-[#8c9bab] ml-auto">
+              {{ formatDate(card.createdAt) }}
+            </span>
+          </div>
         </div>
       </div>
     </div>
