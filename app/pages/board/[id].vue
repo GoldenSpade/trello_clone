@@ -17,8 +17,9 @@ const BOARD_COLORS = [
   '#8ab8c8', '#c8a87a', '#a0b87a', '#c87a9a',
   '#0052cc', '#00875a', '#ff5630', '#ff8b00',
   '#6554c0', '#00b8d9', '#36b37e', '#403294',
-  // Extra
   '#d946ef', '#0ea5e9',
+  // Grays
+  '#f1f5f9', '#cbd5e1', '#64748b', '#475569', '#334155', '#1e293b',
 ]
 const showColorPicker = ref(false)
 

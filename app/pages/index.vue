@@ -10,6 +10,8 @@ const BOARD_COLORS = [
   '#6554c0', '#00b8d9', '#36b37e', '#403294',
   // Extra
   '#d946ef', '#0ea5e9',
+  // Grays
+  '#f1f5f9', '#cbd5e1', '#64748b', '#475569', '#334155', '#1e293b',
 ]
 
 const showCreate = ref(false)

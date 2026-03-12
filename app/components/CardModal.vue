@@ -18,6 +18,8 @@ const ACCENT_COLORS = [
   '#ec4899', '#14b8a6', '#a3e635', '#fbbf24',
   '#60a5fa', '#a78bfa', '#f472b6', '#94a3b8',
   '#d946ef', '#0ea5e9',
+  // Grays
+  '#f1f5f9', '#cbd5e1', '#64748b', '#475569', '#334155', '#1e293b',
 ]
 
 const PRIORITIES: { value: Priority; label: string; color: string }[] = [
