@@ -27,7 +27,7 @@ export function useBoards() {
   async function updateBoard(id: string, data: Partial<Board>) {
     await post({ action: 'updateBoard', id, ...data })
     const idx = boards.value.findIndex(b => b.id === id)
-    if (idx !== -1) Object.assign(boards.value[idx], data)
+    if (idx !== -1) Object.assign(boards.value[idx]!, data)
   }
 
   async function deleteBoard(id: string) {
