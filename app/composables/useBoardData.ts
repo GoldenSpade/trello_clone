@@ -46,7 +46,7 @@ export function useBoardData(boardId: string) {
   async function updateList(id: string, data: Partial<List>) {
     await post({ action: 'updateList', id, ...data })
     const idx = lists.value.findIndex(l => l.id === id)
-    if (idx !== -1) Object.assign(lists.value[idx], data)
+    if (idx !== -1) Object.assign(lists.value[idx]!, data)
   }
 
   async function deleteList(id: string) {
@@ -66,7 +66,7 @@ export function useBoardData(boardId: string) {
   async function updateCard(id: string, data: Partial<Card>) {
     await post({ action: 'updateCard', id, ...data })
     const idx = cards.value.findIndex(c => c.id === id)
-    if (idx !== -1) Object.assign(cards.value[idx], data)
+    if (idx !== -1) Object.assign(cards.value[idx]!, data)
   }
 
   async function deleteCard(id: string) {
@@ -104,9 +104,15 @@ export function useBoardData(boardId: string) {
     })
   }
 
+  async function updateBoard(data: Partial<Board>) {
+    await post({ action: 'updateBoard', id: boardId, ...data })
+    if (board.value) Object.assign(board.value, data)
+  }
+
   return {
     board, lists, cards, loading, error,
     fetchBoardData, cardsForList,
+    updateBoard,
     createList, updateList, deleteList,
     createCard, updateCard, deleteCard, moveCard,
   }

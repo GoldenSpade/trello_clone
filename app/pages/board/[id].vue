@@ -6,11 +6,19 @@ const boardId = route.params.id as string
 
 const {
   board, lists, cards, loading, error,
-  fetchBoardData,
+  fetchBoardData, updateBoard,
   createList, updateList, deleteList,
   createCard, updateCard, deleteCard, moveCard,
   cardsForList,
 } = useBoardData(boardId)
+
+const BOARD_COLORS = [
+  '#7aa2c8', '#7bb8a0', '#c49a8a', '#b8a0c8',
+  '#8ab8c8', '#c8a87a', '#a0b87a', '#c87a9a',
+  '#0052cc', '#00875a', '#ff5630', '#ff8b00',
+  '#6554c0', '#00b8d9', '#36b37e', '#403294',
+]
+const showColorPicker = ref(false)
 
 onMounted(fetchBoardData)
 
@@ -98,6 +106,32 @@ async function onDrop(e: DragEvent, toListId: string, toIndex: number) {
 
       <h1 v-if="board" class="text-white font-bold text-lg">{{ board.title }}</h1>
       <div v-else class="h-6 w-40 bg-white/20 rounded animate-pulse" />
+
+      <!-- Board color picker -->
+      <div v-if="board" class="relative ml-2">
+        <button
+          class="w-6 h-6 rounded-full border-2 border-white/50 hover:border-white transition-colors"
+          :style="{ backgroundColor: board.color }"
+          title="Change board color"
+          @click="showColorPicker = !showColorPicker"
+        />
+        <div
+          v-if="showColorPicker"
+          class="absolute top-8 left-0 bg-[#282e33] rounded-lg p-3 shadow-xl z-30 border border-[#38424d]"
+        >
+          <div class="flex flex-wrap gap-1.5 w-48">
+            <button
+              v-for="c in BOARD_COLORS"
+              :key="c"
+              class="w-6 h-6 rounded transition-transform hover:scale-110"
+              :class="board.color === c ? 'ring-2 ring-white ring-offset-1 ring-offset-[#282e33]' : ''"
+              :style="{ backgroundColor: c }"
+              @click="updateBoard({ color: c }); showColorPicker = false"
+            />
+          </div>
+        </div>
+        <div v-if="showColorPicker" class="fixed inset-0 z-20" @click="showColorPicker = false" />
+      </div>
     </header>
 
     <!-- Board content -->

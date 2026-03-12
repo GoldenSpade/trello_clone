@@ -13,6 +13,8 @@ export interface List {
   createdAt: string
 }
 
+export type Priority = 'none' | 'low' | 'medium' | 'high' | 'urgent'
+
 export interface Card {
   id: string
   listId: string
@@ -20,4 +22,5 @@ export interface Card {
   description: string
   position: number
   createdAt: string
+  priority: Priority
 }

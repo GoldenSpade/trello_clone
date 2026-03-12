@@ -29,6 +29,15 @@ async function submitCard() {
   addingCard.value = false
 }
 
+const PRIORITY_COLORS: Record<string, string> = {
+  low: '#3b82f6', medium: '#f59e0b', high: '#f97316', urgent: '#ef4444',
+}
+
+function priorityStyle(priority: string) {
+  const c = PRIORITY_COLORS[priority] ?? '#4b5563'
+  return { backgroundColor: c + '33', color: c, border: `1px solid ${c}66` }
+}
+
 function saveTitle() {
   if (listTitle.value.trim() && listTitle.value !== props.list.title) {
     emit('renameList', props.list.id, listTitle.value.trim())
@@ -108,6 +117,12 @@ function saveTitle() {
       >
         <p class="text-sm text-[#b6c2cf] leading-snug">{{ card.title }}</p>
         <p v-if="card.description" class="text-xs text-[#8c9bab] mt-1 line-clamp-2">{{ card.description }}</p>
+        <div v-if="card.priority && card.priority !== 'none'" class="mt-1.5">
+          <span
+            class="text-[10px] font-bold uppercase tracking-wide rounded px-1.5 py-0.5"
+            :style="priorityStyle(card.priority)"
+          >{{ card.priority }}</span>
+        </div>
       </div>
     </div>
 

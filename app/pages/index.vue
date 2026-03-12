@@ -2,6 +2,10 @@
 const { boards, loading, error, fetchBoards, createBoard, deleteBoard } = useBoards()
 
 const BOARD_COLORS = [
+  // Pastel
+  '#7aa2c8', '#7bb8a0', '#c49a8a', '#b8a0c8',
+  '#8ab8c8', '#c8a87a', '#a0b87a', '#c87a9a',
+  // Vivid
   '#0052cc', '#00875a', '#ff5630', '#ff8b00',
   '#6554c0', '#00b8d9', '#36b37e', '#403294',
 ]

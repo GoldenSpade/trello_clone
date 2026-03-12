@@ -8,7 +8,7 @@
 //
 // Лист "Boards":  id | title | color | createdAt
 // Лист "Lists":   id | boardId | title | position | createdAt
-// Лист "Cards":   id | listId | title | description | position | createdAt
+// Лист "Cards":   id | listId | title | description | position | createdAt | priority
 // ============================================================
 
 const SHEET_BOARDS = 'Boards';
@@ -26,7 +26,7 @@ function getSheet(name) {
     const headers = {
       [SHEET_BOARDS]: ['id', 'title', 'color', 'createdAt'],
       [SHEET_LISTS]:  ['id', 'boardId', 'title', 'position', 'createdAt'],
-      [SHEET_CARDS]:  ['id', 'listId', 'title', 'description', 'position', 'createdAt'],
+      [SHEET_CARDS]:  ['id', 'listId', 'title', 'description', 'position', 'createdAt', 'priority'],
     };
     sheet.appendRow(headers[name]);
     sheet.getRange(1, 1, 1, headers[name].length)
@@ -224,10 +224,11 @@ function handleCreateCard(body) {
   const now = new Date().toISOString();
   const existingCards = sheetToObjects(sheet).filter(c => c.listId === body.listId);
   const position = existingCards.length;
-  sheet.appendRow([id, body.listId, body.title, body.description || '', position, now]);
+  const priority = body.priority || 'none';
+  sheet.appendRow([id, body.listId, body.title, body.description || '', position, now, priority]);
   return jsonResponse({
     success: true,
-    data: { id, listId: body.listId, title: body.title, description: body.description || '', position, createdAt: now }
+    data: { id, listId: body.listId, title: body.title, description: body.description || '', position, createdAt: now, priority }
   });
 }
 
@@ -239,6 +240,7 @@ function handleUpdateCard(body) {
       if (body.title !== undefined)       sheet.getRange(i + 1, 3).setValue(body.title);
       if (body.description !== undefined) sheet.getRange(i + 1, 4).setValue(body.description);
       if (body.position !== undefined)    sheet.getRange(i + 1, 5).setValue(body.position);
+      if (body.priority !== undefined)    sheet.getRange(i + 1, 7).setValue(body.priority);
       return jsonResponse({ success: true });
     }
   }
