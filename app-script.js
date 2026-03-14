@@ -1,28 +1,28 @@
 // ============================================================
 // TRELLO CLONE — Google Apps Script Backend
-// Скопируй этот код в редактор Google Apps Script
-// и задеплой как Web App (Execute as: Me, Who has access: Anyone)
+// Paste this code into the Google Apps Script editor
+// and deploy as a Web App (Execute as: Me, Who has access: Anyone)
 // ============================================================
 //
-// Структура Google Таблицы (3 листа):
+// Google Spreadsheet structure (3 sheets):
 //
-// Лист "Boards":  id | title | color | createdAt
-// Лист "Lists":   id | boardId | title | position | createdAt | color
-// Лист "Cards":   id | listId | title | description | position | createdAt | priority | color
+// Sheet "Boards":  id | title | color | createdAt
+// Sheet "Lists":   id | boardId | title | position | createdAt | color
+// Sheet "Cards":   id | listId | title | description | position | createdAt | priority | color
 // ============================================================
 
 const SHEET_BOARDS = 'Boards';
 const SHEET_LISTS  = 'Lists';
 const SHEET_CARDS  = 'Cards';
 
-// ── Утилиты ──────────────────────────────────────────────────
+// ── Utilities ────────────────────────────────────────────────
 
 function getSheet(name) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   let sheet = ss.getSheetByName(name);
   if (!sheet) {
     sheet = ss.insertSheet(name);
-    // Создаём заголовки
+    // Create header row
     const headers = {
       [SHEET_BOARDS]: ['id', 'title', 'color', 'createdAt'],
       [SHEET_LISTS]:  ['id', 'boardId', 'title', 'position', 'createdAt', 'color'],
@@ -45,7 +45,7 @@ function sheetToObjects(sheet) {
     const obj = {};
     headers.forEach((h, i) => { obj[h] = row[i]; });
     return obj;
-  }).filter(obj => obj.id !== ''); // пропускаем пустые строки
+  }).filter(obj => obj.id !== ''); // skip empty rows
 }
 
 function generateId() {
@@ -65,7 +65,7 @@ function corsResponse(data) {
   return output;
 }
 
-// ── GET обработчик ───────────────────────────────────────────
+// ── GET handler ──────────────────────────────────────────────
 
 function doGet(e) {
   try {
@@ -90,7 +90,7 @@ function doGet(e) {
   }
 }
 
-// ── POST обработчик ──────────────────────────────────────────
+// ── POST handler ─────────────────────────────────────────────
 
 function doPost(e) {
   try {
@@ -146,7 +146,7 @@ function handleUpdateBoard(body) {
 }
 
 function handleDeleteBoard(body) {
-  // Удаляем доску, все её списки и карточки
+  // Delete the board along with all its lists and cards
   deleteFromSheet(SHEET_BOARDS, 'id', body.id);
   const lists = sheetToObjects(getSheet(SHEET_LISTS)).filter(l => l.boardId === body.id);
   lists.forEach(list => {
@@ -197,7 +197,7 @@ function handleDeleteList(body) {
 }
 
 function handleReorderLists(body) {
-  // body.lists = [{ id, position }, ...]
+  // body.lists = [{ id, position }, ...]  — array of lists with updated positions
   const sheet = getSheet(SHEET_LISTS);
   const data = sheet.getDataRange().getValues();
   body.lists.forEach(item => {
@@ -257,11 +257,11 @@ function handleDeleteCard(body) {
 }
 
 function handleMoveCard(body) {
-  // body: { id, newListId, newPosition, oldListId }
+  // body: { id, newListId, newPosition, oldListId } — move card to another list
   const sheet = getSheet(SHEET_CARDS);
   const data = sheet.getDataRange().getValues();
 
-  // Обновляем listId и position для перемещённой карточки
+  // Update listId and position for the moved card
   for (let i = 1; i < data.length; i++) {
     if (data[i][0] === body.id) {
       sheet.getRange(i + 1, 2).setValue(body.newListId);
@@ -270,7 +270,7 @@ function handleMoveCard(body) {
     }
   }
 
-  // Пересчитываем позиции в исходном списке (если список изменился)
+  // Recalculate positions in the source list (only if the list changed)
   if (body.oldListId !== body.newListId) {
     const allCards = sheetToObjects(sheet);
     const oldListCards = allCards
@@ -289,7 +289,7 @@ function handleMoveCard(body) {
   return jsonResponse({ success: true });
 }
 
-// ── getBoardData: все данные доски за 1 запрос ───────────────
+// ── getBoardData: fetch all board data in a single request ───
 
 function handleGetBoardData(boardId) {
   const listsSheet = getSheet(SHEET_LISTS);
@@ -312,7 +312,7 @@ function handleGetBoardData(boardId) {
   return jsonResponse({ success: true, data: { board, lists, cards } });
 }
 
-// ── Вспомогательная: удаление строк по полю ─────────────────
+// ── Helper: delete rows by field value ───────────────────────
 
 function deleteFromSheet(sheetName, field, value) {
   const sheet = getSheet(sheetName);
@@ -321,7 +321,7 @@ function deleteFromSheet(sheetName, field, value) {
   const colIdx = headers.indexOf(field);
   if (colIdx === -1) return;
 
-  // Идём снизу вверх, чтобы не сбивать индексы при удалении
+  // Iterate bottom-up to avoid index shifting during deletion
   for (let i = data.length - 1; i >= 1; i--) {
     if (data[i][colIdx] === value) {
       sheet.deleteRow(i + 1);
