@@ -8,6 +8,9 @@ export default defineNuxtConfig({
     baseURL: '/trello_clone/',
     head: {
       title: 'Taskboard',
+      link: [
+        { rel: 'icon', type: 'image/x-icon', href: '/trello_clone/favicon.ico' },
+      ],
       meta: [
         {
           name: 'description',
