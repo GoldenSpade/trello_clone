@@ -2,12 +2,17 @@
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
+  ssr: false,
 
   app: {
+    baseURL: '/trello_clone/',
     head: {
       title: 'Taskboard',
       meta: [
-        { name: 'description', content: 'A Trello-like project management board' },
+        {
+          name: 'description',
+          content: 'A Trello-like project management board',
+        },
       ],
     },
   },
