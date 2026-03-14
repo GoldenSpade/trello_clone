@@ -25,6 +25,8 @@ const showColorPicker = ref(false)
 
 onMounted(fetchBoardData)
 
+useHead({ title: computed(() => board.value ? `${board.value.title} — Taskboard` : 'Taskboard') })
+
 // ── Add list ──────────────────────────────────────────────────
 const addingList = ref(false)
 const newListTitle = ref('')
